@@ -1,4 +1,3 @@
-"""
 import graph
 import math
 import sys
@@ -10,6 +9,7 @@ import math
 import sys
 import queue
 from PythonSalesMan import dijkstra
+"""
   
 # SalesmanTrackBranchAndBound1 ===================================================
 
@@ -32,49 +32,46 @@ def SalesmanTrackBranchAndBound2(g, visits):
         for j in range(n):
             if i != j:
                 matriz_dist[i][j] = visits.Vertices[j].DijkstraDistance
-                path = []
+                #path = []
+                actual_path = []
                 v = visits.Vertices[j]
                 while v != visits.Vertices[i]:
-                    path.insert(0, v.predecesor)
+                    actual_path.insert(0, v.predecesor)
                     v = v.predecesor.Origin
-                matriz_paths[i][j] = path
+                matriz_paths[i][j] = actual_path
     
     for j in range(n): 
-        #columna = [matriz_dist[i][j] for i in range(n-1) if i !=j]
         maximos[j] = max([matriz_dist[i][j] for i in range(n-1) if i !=j])
         minimos[j] = min([matriz_dist[i][j] for i in range(n-1) if i !=j])
-        
-    #primero = visits.Vertices[0]
-    #ultimo = visits.Vertices[-1]
     
-    superior_global = sys.float_info.max
+    cota_g = sys.float_info.max
     sol = [None, sys.float_info.max]
     
     actual_path = [0]
-    actual_superior = sum(maximos)
-    actual_inferior = sum(minimos)
+    actual_superior = sum(maximos) + 1e-5 - maximos[0]
+    actual_inferior = sum(minimos) - minimos[0]
     actual_dist = 0
     
-    cola = queue.PriorityQueue()
-    cola.put((actual_inferior, (actual_path, actual_dist, actual_superior)))
+    v = queue.PriorityQueue()
+    v.put((actual_inferior, (actual_path, actual_dist, actual_superior)))
     
-    while not cola.empty(): 
-        actual_inferior, estado = cola.get()
+    while not v.empty(): 
+        actual_inferior, estado = v.get()
         actual_path, actual_dist, actual_superior = estado[0], estado[1], estado[2]
         
         i = actual_path[-1]
-        if i == n-1:     
-            if len(actual_path) == n and actual_dist < sol[1] : 
-                sol[0], sol[1] = actual_path, actual_dist
+        
+        if len(actual_path) == n-1 and actual_dist+matriz_dist[i][n-1] < sol[1]:
+            actual_path.append(n-1)
+            sol[0], sol[1] = actual_path, actual_dist+matriz_dist[i][n-1]
             continue
         
         
-        if actual_superior < superior_global: 
-            superior_global = actual_superior
+        if actual_superior < cota_g: 
+            cota_g = actual_superior
             
-        for j in range(n):
+        for j in range(n-1):
             if j not in actual_path: 
-                
                 new_inferior = actual_inferior - minimos[j] + matriz_dist[i][j]
                 new_superior = actual_superior - maximos[j] + matriz_dist[i][j]
                 new_dist = actual_dist + matriz_dist[i][j]
@@ -82,12 +79,14 @@ def SalesmanTrackBranchAndBound2(g, visits):
                 new_path = list(actual_path)
                 new_path.append(j)
                 
-                if new_inferior < superior_global: 
-                    
-                    cola.put((new_inferior, (new_path, new_dist, new_superior)))   
+                if new_inferior < cota_g and new_dist < sol[1] : 
+                    print("ADDED\n")
+                    v.put((new_inferior, (new_path, new_dist, new_superior)))   
+                
 
+    #print(f"Path: {sol[0]} - Dist: {sol[1]}") 
+    
     track = graph.Track(g)
-    print(sol[0], sol[1])
     for index in range(len(sol[0]) - 1):
         i = sol[0][index]
         j = sol[0][index + 1]
