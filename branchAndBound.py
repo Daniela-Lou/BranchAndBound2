@@ -3,7 +3,8 @@ import math
 import sys
 import queue
 import dijkstra
-"""
+
+"""Pruebas en spyder
 from PythonSalesMan import graph
 import math
 import sys
@@ -41,8 +42,8 @@ def SalesmanTrackBranchAndBound2(g, visits):
                 matriz_paths[i][j] = actual_path
     
     for j in range(n): 
-        maximos[j] = max([matriz_dist[i][j] for i in range(n-1) if i !=j])
-        minimos[j] = min([matriz_dist[i][j] for i in range(n-1) if i !=j])
+        maximos[j] = max([matriz_dist[i][j] if i !=j else 0 for i in range(n-1)])
+        minimos[j] = min([matriz_dist[i][j] if i !=j else 0 for i in range(n-1)])
     
     cota_g = sys.float_info.max
     sol = [None, sys.float_info.max]
@@ -80,11 +81,7 @@ def SalesmanTrackBranchAndBound2(g, visits):
                 new_path.append(j)
                 
                 if new_inferior < cota_g and new_dist < sol[1] : 
-                    print("ADDED\n")
                     v.put((new_inferior, (new_path, new_dist, new_superior)))   
-                
-
-    #print(f"Path: {sol[0]} - Dist: {sol[1]}") 
     
     track = graph.Track(g)
     for index in range(len(sol[0]) - 1):
